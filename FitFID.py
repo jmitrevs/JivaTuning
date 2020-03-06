@@ -19,19 +19,15 @@ NUM_CUT = 106
 # when doing the fit only look at the range center-FIT_HWIDTH:center+FIT_HWIDTH
 FIT_HWIDTH = 10  
 
-
-# The fitting functions
-def Lorentzian(x, mean, scale, gamma):
-    """ Return Lorentzian line shape at x with HWHM gamma """
-    return scale * gamma / np.pi / ((x-mean)**2 + gamma**2)
-
-# complex
-def epr_Lorentzian(x, x0, scale, fwhm):
+# complex function, 
+def epr_Lorentzian(x, x0, fwhm, scale):
+    """ x, scale complex: x0, fwhm real, return complex
+    """
     xc = 2*(x-x0)/fwhm
     return scale * 2/np.pi/fwhm *(1-1j*xc)/(1+xc*xc)
 
 # expanded 
-def epr_Lorentzian_exp(x, x0, scaler, scalei, fwhm):
+def epr_Lorentzian_exp(x, x0, fwhm, scaler, scalei):
     scale = scaler + 1j*scalei
     xc = 2*(x-x0)/fwhm
     return scale * 2/np.pi/fwhm *(1-1j*xc)/(1+xc*xc)
@@ -47,7 +43,6 @@ def func_wrap_abs(f, x, y):
     return func
 
 
-
 def fitFID(onRes, offRes=None):
     """ 
     Given the onRes and offRes files (offRes is optional)
@@ -55,7 +50,7 @@ def fitFID(onRes, offRes=None):
     If an off-resolution file is included, it is subtracted 
     from the on-resolution.
 
-    Returns (mean, fwhm, phase) in (MHz, MHz, radians) of the Lorentzian fit
+    Returns (mean, fwhm, phase) in (MHz, MHz, degrees) of the Lorentzian fit
     """
 
     onFile = TdmsFile(onRes)
@@ -88,36 +83,15 @@ def fitFID(onRes, offRes=None):
     # determine the absolute max value
     amax = np.argmax(np.abs(dataFFT))
 
-    # # the phase at the maximum
-    # phase = np.angle(dataFFT[amax])
-
-    # # phase rotate so that the maximum is real
-    # dataFFTRot = dataFFT * np.exp(-1j * phase)
-
-    
-    
-    # fit, fitErr = scipy.optimize.curve_fit(Lorentzian,
-    #                                        freq[amax-FIT_HWIDTH:amax+FIT_HWIDTH],
-    #                                        dataFFTRot[amax-FIT_HWIDTH:amax+FIT_HWIDTH].real)
-
-    # fit, fitErr = scipy.optimize.leastsq(func_wrap_abs(Lorentzian,
-    #                                        freq[amax-FIT_HWIDTH:amax+FIT_HWIDTH],
-    #                                        dataFFTRot[amax-FIT_HWIDTH:amax+FIT_HWIDTH].real),
-    #                                  (1, 1, 1))
-
-    #print(fit, phase)
-    #return (fit[0], fit[2], phase)
-    
     fit, fitErr = scipy.optimize.leastsq(func_wrap_abs(epr_Lorentzian_exp,
                                            freq[amax-FIT_HWIDTH:amax+FIT_HWIDTH],
                                            dataFFT[amax-FIT_HWIDTH:amax+FIT_HWIDTH]),
                                      (1, 1, 1, 1))
 
-    #print(fit)
-    x0 = fit[0] # + 1j*fit[1]
-    scale = fit[1] + 1j * fit[2]
-    fwhm = np.abs(fit[3])
-    return (np.abs(x0), fwhm, np.angle(scale))
+    x0 = fit[0]
+    fwhm = fit[1]
+    scale = fit[2] + 1j * fit[3]
+    return (x0, fwhm, np.degrees(np.angle(scale)))
 
 def main():
     """ This function is only called if this module is
@@ -136,8 +110,8 @@ def main():
 
     args = parser.parse_args()
 
-    mean, fwhm, phase = fitFID(args.onRes, args.offRes)
-    print(f"mean = {mean:.2f} MHz, FWHM = {fwhm:.2f} MHz, phase = {phase:.2f} rad") 
+    x0, fwhm, phase = fitFID(args.onRes, args.offRes)
+    print(f"{x0:.4f}, {fwhm:.4f}, {phase:.2f}") 
 
 if __name__ == "__main__":
     # execute only if run as a script
