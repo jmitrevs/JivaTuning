@@ -31,10 +31,8 @@ def epr_Lorentzian(x, x0, scale, fwhm):
     return scale * 2/np.pi/fwhm *(1-1j*xc)/(1+xc*xc)
 
 # expanded 
-def epr_Lorentzian_exp(x, x0r, x0i, scaler, scalei, fwhmr):
-    x0 = x0r + 1j*x0i
+def epr_Lorentzian_exp(x, x0, scaler, scalei, fwhm):
     scale = scaler + 1j*scalei
-    fwhm = fwhmr
     xc = 2*(x-x0)/fwhm
     return scale * 2/np.pi/fwhm *(1-1j*xc)/(1+xc*xc)
 
@@ -90,11 +88,11 @@ def fitFID(onRes, offRes=None):
     # determine the absolute max value
     amax = np.argmax(np.abs(dataFFT))
 
-    # the phase at the maximum
-    phase = np.angle(dataFFT[amax])
+    # # the phase at the maximum
+    # phase = np.angle(dataFFT[amax])
 
-    # phase rotate so that the maximum is real
-    dataFFTRot = dataFFT * np.exp(-1j * phase)
+    # # phase rotate so that the maximum is real
+    # dataFFTRot = dataFFT * np.exp(-1j * phase)
 
     
     
@@ -113,12 +111,12 @@ def fitFID(onRes, offRes=None):
     fit, fitErr = scipy.optimize.leastsq(func_wrap_abs(epr_Lorentzian_exp,
                                            freq[amax-FIT_HWIDTH:amax+FIT_HWIDTH],
                                            dataFFT[amax-FIT_HWIDTH:amax+FIT_HWIDTH]),
-                                     (1, 1, 1, 1, 1))
+                                     (1, 1, 1, 1))
 
     #print(fit)
-    x0 = fit[0] + 1j*fit[1]
-    scale = fit[2] + 1j * fit[3]
-    fwhm = np.abs(fit[4])
+    x0 = fit[0] # + 1j*fit[1]
+    scale = fit[1] + 1j * fit[2]
+    fwhm = np.abs(fit[3])
     return (np.abs(x0), fwhm, np.angle(scale))
 
 def main():
