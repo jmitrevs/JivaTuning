@@ -111,7 +111,7 @@ def main():
     args = parser.parse_args()
 
     x0, fwhm, phase = fitFID(args.onRes, args.offRes)
-    print(f"{x0:.4f}, {fwhm:.4f}, {phase:.2f}") 
+    print(f"{x0:.4f},{fwhm:.4f},{phase:.2f}") 
 
 if __name__ == "__main__":
     # execute only if run as a script
