@@ -50,7 +50,7 @@ def fitFID(onRes, offRes=None):
     If an off-resolution file is included, it is subtracted 
     from the on-resolution.
 
-    Returns (mean, fwhm, phase) in (MHz, MHz, degrees) of the Lorentzian fit
+    Returns (x0, fwhm, phase) in (MHz, MHz, degrees) of the Lorentzian fit
     """
 
     onFile = TdmsFile(onRes)
@@ -96,13 +96,14 @@ def fitFID(onRes, offRes=None):
 def main():
     """ This function is only called if this module is
     executed directly. It parses the command line
-    and calls the controlApp function.
+    and calls the fitFID function.
 
-    Usage: FitFID.py --onRes=file --offRes=file
+    Usage: FitFID.py onResFile --offRes=offResFile
+
+    Returns x0,fwhm,phase in MHz,MHz,degrees of the Lorentzian fit
     """
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--echo", help="Echo responses to stdout", action="store_true")
     parser.add_argument('onRes', type=argparse.FileType('rb'),
                         help="Input tdms on-resonance file. Use '-' for stdin")
     parser.add_argument('--offRes', type=argparse.FileType('rb'),
