@@ -31,7 +31,7 @@ def main():
 
     x0, fwhm, phase = fitFID(args.onRes, args.offRes)  # units: MHz,MHz,degrees
     
-    newField = args.field + x0 / ABS_GAMMA_2PI
+    newField = args.field - x0 / ABS_GAMMA_2PI
 
     print(f".daemon.qs.phref='{phase:.2f}deg'")
     print(f".spec.FLD.Field={newField:.3f}")
