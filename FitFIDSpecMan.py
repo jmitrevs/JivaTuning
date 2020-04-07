@@ -33,8 +33,7 @@ def main():
     
     newField = args.field - x0 / ABS_GAMMA_2PI
 
-    print(f".daemon.qs.phref='{phase:.2f}deg'")
-    print(f".spec.FLD.Field={newField:.3f}")
+    print(f".daemon.qs.phref='{phase:.2f}deg';.spec.FLD.Field={newField:.3f}")
 
 if __name__ == "__main__":
     # execute only if run as a script
