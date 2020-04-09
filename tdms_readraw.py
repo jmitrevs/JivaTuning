@@ -51,7 +51,7 @@ def SpecManTDMSpar(tdmsFile):
     axes = {}
     desc = {}
 
-    root_properties = tdmsFile.object().properties
+    root_properties = tdmsFile.properties
     axes['title'] = root_properties.get('name', '?')
 
     # We should put the root properties in desc
@@ -67,9 +67,9 @@ def SpecManTDMSpar(tdmsFile):
     # The properties should be ordered, but just in case, let's create the iterKeys
     # explicitly to enforce the order
 
-    axes_properties = tdmsFile.object('axis').properties
-    params = tdmsFile.object('params').properties
-    aquisition = tdmsFile.object('aquisition').properties
+    axes_properties = tdmsFile['axis'].properties
+    params = tdmsFile['params'].properties
+    aquisition = tdmsFile['aquisition'].properties
 
     # iterate over the sweep axes
     iterKeys = ["transient"]
@@ -103,7 +103,7 @@ def SpecManTDMSpar(tdmsFile):
 
         sweepax.append(ax)
 
-    stream_properties = tdmsFile.object('streams', 'Re').properties
+    stream_properties = tdmsFile['streams']['Re'].properties
     triggers = stream_properties.get('triggers', 1)
 
     sweepax[0]['size'] = sweepax[0]['size'] * triggers
@@ -151,7 +151,7 @@ def SpecManTDMSpar(tdmsFile):
 
     # add a few more values to the desc
     for grp in ['exp_info', 'sample_info']:
-        for name, value in tdmsFile.object(grp).properties.items():
+        for name, value in tdmsFile[grp].properties.items():
             newkey = grp + '_' + name
             desc[newkey] = value
 
@@ -191,14 +191,14 @@ def tdms_readraw(fff):
     ax, desc = SpecManTDMSpar(fff)
 
     #  add real data for reference stream to exp
-    stream_properties = fff.object('streams', 'Re').properties
+    stream_properties = fff['streams']['Re'].properties
     dim1 = stream_properties['dim1']
     dim2 = stream_properties['dim2']
     dim3 = stream_properties['dim3']
     dim4 = stream_properties['dim4']
 
-    sreal = tdms_stream2array(fff.channel_data('streams', 'Re'), dim1, dim2, dim3, dim4)
-    simag = tdms_stream2array(fff.channel_data('streams', 'Im'), dim1, dim2, dim3, dim4)
+    sreal = tdms_stream2array(fff['streams']['Re'].data, dim1, dim2, dim3, dim4)
+    simag = tdms_stream2array(fff['streams']['Im'].data, dim1, dim2, dim3, dim4)
 
     spec = sreal + 1j * simag
 
