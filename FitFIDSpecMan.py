@@ -21,7 +21,6 @@ def main():
     """
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('field', type=float, help="Input field [G]")
     parser.add_argument('onRes', type=argparse.FileType('rb'),
                         help="Input tdms on-resonance file. Use '-' for stdin")
     parser.add_argument('--offRes', type=argparse.FileType('rb'),
@@ -29,9 +28,9 @@ def main():
 
     args = parser.parse_args()
 
-    x0, fwhm, phase = fitFID(args.onRes, args.offRes)  # units: MHz,MHz,degrees
-    
-    newField = args.field - x0 / ABS_GAMMA_2PI
+    field, x0, fwhm, phase = fitFID(args.onRes, args.offRes)  # units: MHz,MHz,degrees
+
+    newField = field - x0 / ABS_GAMMA_2PI
 
     print(f".daemon.qs.phref='{phase:.2f}deg';.spec.FLD.Field={newField:.3f}")
 

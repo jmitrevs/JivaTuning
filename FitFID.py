@@ -9,6 +9,7 @@ import numpy as np
 import scipy.optimize
 from nptdms import TdmsFile
 from tdms_readraw import tdms_readraw
+from utils_misc import str2val
 
 import logging
 log = logging.getLogger("SuperJIVA." + __name__)
@@ -17,16 +18,16 @@ log = logging.getLogger("SuperJIVA." + __name__)
 NUM_CUT = 106
 
 # when doing the fit only look at the range center-FIT_HWIDTH:center+FIT_HWIDTH
-FIT_HWIDTH = 10  
+FIT_HWIDTH = 10
 
-# complex function, 
+# complex function,
 def epr_Lorentzian(x, x0, fwhm, scale):
     """ x, scale complex: x0, fwhm real, return complex
     """
     xc = 2*(x-x0)/fwhm
     return scale * 2/np.pi/fwhm *(1-1j*xc)/(1+xc*xc)
 
-# expanded 
+# expanded
 def epr_Lorentzian_exp(x, x0, fwhm, scaler, scalei):
     scale = scaler + 1j*scalei
     xc = 2*(x-x0)/fwhm
@@ -44,13 +45,13 @@ def func_wrap_abs(f, x, y):
 
 
 def fitFID(onRes, offRes=None):
-    """ 
+    """
     Given the onRes and offRes files (offRes is optional)
 
-    If an off-resolution file is included, it is subtracted 
+    If an off-resolution file is included, it is subtracted
     from the on-resolution.
 
-    Returns (x0, fwhm, phase) in (MHz, MHz, degrees) of the Lorentzian fit
+    Returns (fieldIn, x0, fwhm, phase) in (Gauss, MHz, MHz, degrees) of the Lorentzian fit
     """
 
     onFile = TdmsFile(onRes)
@@ -61,15 +62,15 @@ def fitFID(onRes, offRes=None):
     times = ax_on['x']
     on = spec_on[:,0,0,0]
     subtracted = on
-    
+
     if offRes:
         offFile = TdmsFile(offRes)
         ax_off, spec_off, desc_off = tdms_readraw(offFile)
         off = spec_off[:,0,0,0]
         subtracted -= off
-    
+
     sampleSpacing = times[1] - times[0]
-    
+
     # t = times[NUM_CUT:] * 1e6  # make us  (useful for plotting)
     data = subtracted[NUM_CUT:]
 
@@ -79,7 +80,7 @@ def fitFID(onRes, offRes=None):
     # let's recenter at zero
     freq = np.fft.fftshift(freq)
     dataFFT = np.fft.fftshift(dataFFT)
-    
+
     # determine the absolute max value
     amax = np.argmax(np.abs(dataFFT))
 
@@ -91,7 +92,7 @@ def fitFID(onRes, offRes=None):
     x0 = fit[0]
     fwhm = fit[1]
     scale = fit[2] + 1j * fit[3]
-    return (x0, fwhm, np.degrees(np.angle(scale)))
+    return (str2val(desc_on["devices_FLD_Field"])[0], x0, fwhm, np.degrees(np.angle(scale)))
 
 def main():
     """ This function is only called if this module is
@@ -112,7 +113,7 @@ def main():
     args = parser.parse_args()
 
     x0, fwhm, phase = fitFID(args.onRes, args.offRes)
-    print(f"{x0:.4f},{fwhm:.4f},{phase:.2f}") 
+    print(f"{x0:.4f},{fwhm:.4f},{phase:.2f}")
 
 if __name__ == "__main__":
     # execute only if run as a script

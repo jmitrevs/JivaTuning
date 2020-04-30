@@ -154,6 +154,11 @@ def SpecManTDMSpar(tdmsFile):
         for name, value in tdmsFile[grp].properties.items():
             newkey = grp + '_' + name
             desc[newkey] = value
+    for grp in ['devices']:
+        for chan in tdmsFile[grp].channels():
+            for name, value in chan.properties.items():
+                newkey = grp + '_' + chan.name + '_' + name
+                desc[newkey] = value
 
     return axes, desc
 
