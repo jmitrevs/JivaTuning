@@ -34,7 +34,7 @@ def main():
 
     newField = field - x0 / ABS_GAMMA_2PI
 
-    print(f".daemon.qs.phref='{phase:.2f}deg';.spec.FLD.Field={newField:.3f}", file=args.output)
+    print(f".spec.BRIDGE.REFphase={phase:.2f};.spec.FLD.Field={newField:.3f}", file=args.output)
 
 if __name__ == "__main__":
     # execute only if run as a script
