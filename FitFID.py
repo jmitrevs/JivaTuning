@@ -75,7 +75,7 @@ def fitFID(onRes, offRes=None):
     data = subtracted[NUM_CUT:]
 
     dataFFT = np.fft.fft(data, n=2048)
-    freq = np.fft.fftfreq(dataFFT.size, sampleSpacing) * 1e-6 # make MHz
+    freq = np.fft.fftfreq(dataFFT.size, sampleSpacing) * 1e-6  # make MHz
 
     # let's recenter at zero
     freq = np.fft.fftshift(freq)
@@ -85,14 +85,20 @@ def fitFID(onRes, offRes=None):
     amax = np.argmax(np.abs(dataFFT))
 
     fit, fitErr = scipy.optimize.leastsq(func_wrap_abs(epr_Lorentzian_exp,
-                                           freq[amax-FIT_HWIDTH:amax+FIT_HWIDTH],
-                                           dataFFT[amax-FIT_HWIDTH:amax+FIT_HWIDTH]),
-                                     (1, 1, 1, 1))
+                                         freq[amax-FIT_HWIDTH:amax+FIT_HWIDTH],
+                                         dataFFT[amax-FIT_HWIDTH:amax+FIT_HWIDTH]),
+                                         (1, 1, 1, 1))
 
     x0 = fit[0]
     fwhm = fit[1]
     scale = fit[2] + 1j * fit[3]
-    return (str2val(desc_on["devices_FLD_Field"])[0], x0, fwhm, np.degrees(np.angle(scale)))
+
+    # I think the calculated phase is relative to the old phase
+    # so to make it absolute we need to add the old phase to the new value
+    oldPhase = str2val(desc_on["devices_BRIDGE_REFphase"])[0]
+    newPhase = np.degrees(np.angle(scale)) + oldPhase
+    return (str2val(desc_on["devices_FLD_Field"])[0],
+            x0, fwhm, newPhase)
 
 def main():
     """ This function is only called if this module is
