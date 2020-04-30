@@ -3,7 +3,7 @@
 """
 Fit the FID and output SpecMan commands to update the tuning
 """
-
+import sys
 import numpy as np
 from FitFID import fitFID
 
@@ -25,6 +25,8 @@ def main():
                         help="Input tdms on-resonance file. Use '-' for stdin")
     parser.add_argument('--offRes', type=argparse.FileType('rb'),
                         help="Input tdms off-resonance file. Use '-' for stdin")
+    parser.add_argument('--output', '-o', type=argparse.FileType('w'), default=sys.stdout,
+                        help="Where to write instead of stdout")
 
     args = parser.parse_args()
 
@@ -32,7 +34,7 @@ def main():
 
     newField = field - x0 / ABS_GAMMA_2PI
 
-    print(f".daemon.qs.phref='{phase:.2f}deg';.spec.FLD.Field={newField:.3f}")
+    print(f".daemon.qs.phref='{phase:.2f}deg';.spec.FLD.Field={newField:.3f}", file=args.output)
 
 if __name__ == "__main__":
     # execute only if run as a script
