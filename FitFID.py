@@ -96,7 +96,7 @@ def fitFID(onRes, offRes=None):
     # I think the calculated phase is relative to the old phase
     # so to make it absolute we need to add the old phase to the new value
     oldPhase = str2val(desc_on["devices_BRIDGE_REFphase"])[0]
-    newPhase = np.degrees(np.angle(scale)) + oldPhase
+    newPhase = (np.angle(scale, deg=True) + oldPhase) % 360
     return (str2val(desc_on["devices_FLD_Field"])[0],
             x0, fwhm, newPhase)
 
