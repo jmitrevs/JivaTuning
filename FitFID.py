@@ -12,6 +12,7 @@ from tdms_readraw import tdms_readraw
 from utils_misc import str2val
 
 import logging
+# logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("SuperJIVA." + __name__)
 
 # the number of points to not look at in the beginning
@@ -19,6 +20,13 @@ NUM_CUT = 106
 
 # when doing the fit only look at the range center-FIT_HWIDTH:center+FIT_HWIDTH
 FIT_HWIDTH = 10
+
+# gyrometric ratio of the electron
+ABS_GAMMA = 17.60859644  # rad / (us G) 
+ABS_GAMMA_2PI = ABS_GAMMA / (2 * np.pi)  # MHz / G
+
+# constant from fit to shift phase as a function of x0
+K = 467.0
 
 # complex function,
 def epr_Lorentzian(x, x0, fwhm, scale):
@@ -96,9 +104,11 @@ def fitFID(onRes, offRes=None):
     # I think the calculated phase is relative to the old phase
     # so to make it absolute we need to add the old phase to the new value
     oldPhase = str2val(desc_on["devices_BRIDGE_REFphase"])[0]
-    newPhase = (np.angle(scale, deg=True) + oldPhase) % 360
-    return (str2val(desc_on["devices_FLD_Field"])[0],
-            x0, fwhm, newPhase)
+    addPhase = np.angle(scale, deg=True) - K * x0
+    newPhase = (addPhase + oldPhase) % 360
+    field = str2val(desc_on["devices_FLD_Field"])[0]
+    log.debug(f"field = {field} G, x0 = {x0:.4f} MHz ({(x0/ABS_GAMMA_2PI):4f} G), fwhm = {fwhm:.4f} MHz, oldPhase = {oldPhase:.2f} deg, addPhase = {addPhase:.2f} deg")
+    return (field, x0, fwhm, newPhase)
 
 def main():
     """ This function is only called if this module is
