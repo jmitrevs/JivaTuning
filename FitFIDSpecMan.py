@@ -11,6 +11,7 @@ from FitFID import fitFID
 ABS_GAMMA = 17.60859644  # rad / (us G) 
 ABS_GAMMA_2PI = ABS_GAMMA / (2 * np.pi)  # MHz / G
 
+
 def main():
     """ This function is only called if this module is
     executed directly. It parses the command line

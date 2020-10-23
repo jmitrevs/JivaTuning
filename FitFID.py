@@ -12,7 +12,7 @@ from tdms_readraw import tdms_readraw
 from utils_misc import str2val
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("JivaTuning." + __name__)
 
 # the number of points to not look at in the beginning
