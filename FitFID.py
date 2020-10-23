@@ -12,14 +12,17 @@ from tdms_readraw import tdms_readraw
 from utils_misc import str2val
 
 import logging
-# logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger("SuperJIVA." + __name__)
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger("JivaTuning." + __name__)
 
 # the number of points to not look at in the beginning
 NUM_CUT = 106
 
 # when doing the fit only look at the range center-FIT_HWIDTH:center+FIT_HWIDTH
 FIT_HWIDTH = 10
+
+# The number of points to average for the baseline
+BASELINE_NUM = 5
 
 # gyrometric ratio of the electron
 ABS_GAMMA = 17.60859644  # rad / (us G) 
@@ -52,12 +55,15 @@ def func_wrap_abs(f, x, y):
     return func
 
 
-def fitFID(onRes, offRes=None):
+def fitFID(onRes, offRes=None, subtractBaseline=False):
     """
     Given the onRes and offRes files (offRes is optional)
 
-    If an off-resolution file is included, it is subtracted
+    If an off-resonance file is included, it is subtracted
     from the on-resolution.
+
+    if subtractBaseline is true, the baseline, determined by the last few
+    values, is subtracted, only if no off-resonance file is included
 
     Returns (fieldIn, x0, fwhm, phase) in (Gauss, MHz, MHz, degrees) of the Lorentzian fit
     """
@@ -76,6 +82,10 @@ def fitFID(onRes, offRes=None):
         ax_off, spec_off, desc_off = tdms_readraw(offFile)
         off = spec_off[:,0,0,0]
         subtracted -= off
+    elif subtractBaseline:
+        baseline = np.mean(on[-BASELINE_NUM:])
+        log.debug(f"{baseline=}")
+        subtracted -= baseline
 
     sampleSpacing = times[1] - times[0]
 
@@ -110,6 +120,7 @@ def fitFID(onRes, offRes=None):
     log.debug(f"field = {field} G, x0 = {x0:.4f} MHz ({(x0/ABS_GAMMA_2PI):4f} G), fwhm = {fwhm:.4f} MHz, oldPhase = {oldPhase:.2f} deg, addPhase = {addPhase:.2f} deg")
     return (field, x0, fwhm, newPhase)
 
+
 def main():
     """ This function is only called if this module is
     executed directly. It parses the command line
@@ -125,11 +136,14 @@ def main():
                         help="Input tdms on-resonance file. Use '-' for stdin")
     parser.add_argument('--offRes', type=argparse.FileType('rb'),
                         help="Input tdms off-resonance file. Use '-' for stdin")
+    parser.add_argument('--baseline', '-b', action="store_true",
+                        help="Subtract the baseline")
 
     args = parser.parse_args()
 
-    field, x0, fwhm, phase = fitFID(args.onRes, args.offRes)
+    field, x0, fwhm, phase = fitFID(args.onRes, args.offRes, args.baseline)
     print(f"{field},{x0:.4f},{fwhm:.4f},{phase:.2f}")
+
 
 if __name__ == "__main__":
     # execute only if run as a script

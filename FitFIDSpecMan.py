@@ -27,10 +27,12 @@ def main():
                         help="Input tdms off-resonance file. Use '-' for stdin")
     parser.add_argument('--output', '-o', type=argparse.FileType('w'), default=sys.stdout,
                         help="Where to write instead of stdout")
+    parser.add_argument('--baseline', '-b', action="store_true",
+                        help="Subtract the baseline")
 
     args = parser.parse_args()
 
-    field, x0, fwhm, phase = fitFID(args.onRes, args.offRes)  # units: MHz,MHz,degrees
+    field, x0, fwhm, phase = fitFID(args.onRes, args.offRes, args.baseline)  # units: MHz,MHz,degrees
 
     newField = field - x0 / ABS_GAMMA_2PI
 
